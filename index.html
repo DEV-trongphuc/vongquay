@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Vòng quay may mắn</title>
+  </head>
+  <style>
+    * {
+      padding: 0;
+      margin: 0;
+      box-sizing: border-box;
+    }
+    html {
+      overflow: hidden;
+    }
+    body {
+      width: 100vw;
+      height: 100vh;
+      overflow: hidden;
+    }
+    .spin_wrapper {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      position: relative;
+      background-color: red;
+      width: 100%;
+      height: 100%;
+      background: url(./img/background.png);
+      background-size: cover;
+    }
+    #circle {
+      width: 90%;
+      transition: 5s;
+      rotate: 180deg;
+    }
+    #spiner {
+      width: 15%;
+      animation: zoomInOut 0.5s infinite;
+      cursor: pointer;
+    }
+    .spin_wrapper img {
+      position: absolute;
+    }
+    @keyframes zoomInOut {
+      0% {
+        scale: 0.95;
+      }
+      100% {
+        scale: 1;
+      }
+    }
+    #form {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background: white;
+      padding: 1rem;
+      border-radius: 10px;
+      z-index: 999;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+      scale: 0;
+      transition: 0.3s ease;
+      pointer-events: none;
+      transform-origin: 0 0;
+    }
+    #form.active {
+      scale: 1;
+      pointer-events: all;
+    }
+    #form input {
+      width: 100%;
+      padding: 10px;
+      margin-top: 1px;
+    }
+    #form button {
+      background: rgb(187, 0, 0);
+      padding: 10px;
+      font-size: 16px;
+      font-weight: bold;
+      text-transform: uppercase;
+      color: white;
+    }
+    .overlay {
+      position: fixed;
+      width: 100vw;
+      height: 100vh;
+      background-color: rgba(0, 0, 0, 0.31);
+      top: 0;
+      left: 0;
+      z-index: 99;
+      opacity: 0;
+      pointer-events: none;
+      transition: 0.3s ease;
+    }
+    #form.active + .overlay {
+      opacity: 1;
+      pointer-events: all;
+    }
+  </style>
+  <body>
+    <div class="spin_wrapper">
+      <img id="circle" src="./img/circle.png" />
+      <img id="spiner" src="./img/spiner.png" />
+    </div>
+    <div id="form">
+      <h2 id="reward">Chúc mừng bạn đã trúng ...</h2>
+      <input placeholder="Họ và tên" id="name" />
+      <input placeholder="Email" id="email" />
+      <input placeholder="Số điện thoại" id="phone" />
+      <button id="submit">Nhận thưởng</button>
+    </div>
+    <div class="overlay"></div>
+  </body>
+  <script>
+    const spiner = document.getElementById("spiner");
+    const circle = document.getElementById("circle");
+    const form = document.getElementById("form");
+    const rewardTitle = document.getElementById("reward");
+    // _____________________----
+    const name = document.getElementById("name");
+    const email = document.getElementById("email");
+    const phone = document.getElementById("phone");
+    const submit = document.getElementById("submit");
+
+    // __________________________________________----
+    let countMac = 0;
+    async function checkMac() {
+      const response = await fetch(
+        "https://script.google.com/macros/s/AKfycbzNcu65EUl_GQ5cG5yhdni6tpSPVSsrcBCERgv96FYP_Tdhc_NAKtmF9rvoaUCBZMQFNw/exec"
+      );
+      const data = await response.json();
+      return (countMac = data.data);
+    }
+    checkMac();
+    document.addEventListener("DOMContentLoaded", () => {
+      const spined = localStorage.getItem("spined");
+      const reward = localStorage.getItem("reward");
+      if (spined) {
+        spiner.style = "pointer-events: none";
+        rewardTitle.innerText = reward;
+        form.classList.add("active");
+      }
+    });
+    let reward = "Chúc may mắn";
+    spiner.addEventListener("click", () => {
+      const random = Math.floor(Math.random() * 101);
+      // kHI ĐÃ QUAY 1 LẦN RỒI
+      spiner.style = "pointer-events: none";
+      if (random >= 0 && random < 1) {
+        circle.style = "rotate: 1133deg ";
+        reward = "Macbook";
+      } else if (random > 5 && random <= 35) {
+        circle.style = "rotate: 1200deg ";
+        reward = "100$";
+      } else if (random > 35 && random <= 55) {
+        circle.style = "rotate: 1436deg ";
+        reward = "200$";
+      } else if (random > 55 && random <= 70) {
+        circle.style = "rotate: 1322deg ";
+        reward = "300$";
+      } else if (random > 70 && random <= 80) {
+        circle.style = "rotate: 1260deg ";
+        reward = "500$";
+      } else {
+        circle.style = "rotate: 1370deg ";
+      }
+      setTimeout(() => {
+        rewardTitle.innerText = reward;
+        form.classList.add("active");
+        localStorage.setItem("spined", true);
+        localStorage.setItem("reward", reward);
+      }, 5000);
+    });
+
+    // ___________________________________---
+    submit.addEventListener("click", () => {
+      data = {
+        nameData: name.value,
+        mailData: email.value,
+        phoneData: phone.value,
+        rewardData: reward,
+      };
+      postGoogleForm(data);
+    });
+    // ______________Post Google Form____________-
+    async function postGoogleForm(data) {
+      const formURL =
+        "https://docs.google.com/forms/d/e/1FAIpQLSei80Mktkhx1xH2q6--5qUMUcDIRYfUbcNQboP64qPwqoVPBQ/formResponse";
+      const postName = "entry.206617833";
+      const postEmail = "entry.1841940772";
+      const postPhone = "entry.2025684783";
+      const postReward = "entry.664888280";
+      const formData = new FormData();
+      formData.append(postName, data.nameData);
+      formData.append(postEmail, data.mailData);
+      formData.append(postPhone, data.phoneData);
+      formData.append(postReward, data.rewardData);
+      try {
+        await fetch(formURL, {
+          method: "POST",
+          body: formData,
+        });
+      } catch (error) {
+        console.error(error);
+      }
+    }
+  </script>
+</html>
